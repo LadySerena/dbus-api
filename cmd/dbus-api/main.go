@@ -1,24 +1,20 @@
 package main
 
 import (
+	"dbus-api/pkg/dbus"
 	"fmt"
-	"github.com/godbus/dbus"
 )
 
 func main() {
-	var list [][]interface{}
-
-	conn, err := dbus.SystemBus()
-	if err != nil {
-		panic(err)
+	client, clientCreateErr := dbus.NewClient()
+	if clientCreateErr != nil {
+		fmt.Printf("could not create the dbus client due to: %s\n", clientCreateErr.Error())
+		return
 	}
-
-
-	err = conn.Object("org.freedesktop.systemd1", "/org/freedesktop/systemd1").Call("org.freedesktop.systemd1.Manager.ListUnits", 0).Store(&list)
-	if err != nil {
-		panic(err)
+	defer client.Close()
+	unitDetails, getErr := client.GetUnit("docker.service")
+	if getErr != nil {
+		fmt.Printf("could not get unit %s due to: %s\n", "docker.service", getErr.Error())
 	}
-	for _, v := range list {
-		fmt.Println(v)
-	}
+	fmt.Printf("%#v\n", unitDetails)
 }
