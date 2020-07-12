@@ -1,0 +1,78 @@
+openapi: 3.0.1
+info:
+  title: DBus API
+  description: API to interface with Systemd
+  version: 1.0.0
+servers:
+  - url: 'https://minecraft.serenacodes.com'
+paths:
+  /service:
+    get:
+      summary: Returns the status of the configured systemd service
+      responses:
+        '200':
+          description: query ran successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/service-status'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api-error'
+    post:
+      summary: Changes the state of the configured service
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/service-change'
+      responses:
+        '200':
+          description: service was changed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/service-status'
+        '500':
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/api-error'
+
+components:
+  schemas:
+    service-change:
+      properties:
+        operation:
+          type: string
+          enum:
+            - start
+            - stop
+            - restart
+    service-status:
+      properties:
+        service-name:
+          type: string
+        active:
+          type: string
+          enum:
+            - active
+            - inactive
+        sub-status:
+          type: string
+          enum: 
+            - exited
+            - running
+            - waiting
+            - dead
+    api-error:
+      properties:
+        status:
+          type: integer
+          format: int32
+        reason:
+          type: string
