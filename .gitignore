@@ -27,3 +27,6 @@ gen
 ### sops template
 secrets/decrypted/*
 !secrets/decrypted/.gitkeep
+
+./dbus-api
+./docker-unit.txt
