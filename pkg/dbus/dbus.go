@@ -4,6 +4,17 @@ import (
 	"github.com/godbus/dbus"
 )
 
+const (
+	destination                       = "org.freedesktop.systemd1"
+	systemdPath       dbus.ObjectPath = "/org/freedesktop/systemd1"
+	mode                              = "replace"
+	managerInterface                  = "org.freedesktop.systemd1.Manager"
+	getUnitMethod                     = managerInterface + ".GetUnit"
+	startUnitMethod                   = managerInterface + ".StartUnit"
+	restartUnitMethod                 = managerInterface + ".RestartUnit"
+	stopUnitMethod                    = managerInterface + ".StopUnit"
+)
+
 type Client struct {
 	connection *dbus.Conn
 }
@@ -17,17 +28,12 @@ type UnitResponse struct {
 func (c *Client) GetUnit(unitName string) (*UnitResponse, error) {
 	var path dbus.ObjectPath
 
-	connection, connectionErr := dbus.SystemBus()
-	if connectionErr != nil {
-		return nil, connectionErr
-	}
-
-	getObjectErr := connection.Object("org.freedesktop.systemd1", "/org/freedesktop/systemd1").Call("org.freedesktop.systemd1.Manager.GetUnit", 0, unitName).Store(&path)
+	getObjectErr := c.connection.Object(destination, systemdPath).Call(getUnitMethod, 0, unitName).Store(&path)
 	if getObjectErr != nil {
 		return nil, getObjectErr
 	}
 
-	serviceObject := connection.Object("org.freedesktop.systemd1", path)
+	serviceObject := c.connection.Object(destination, path)
 	Id, IdErr := serviceObject.GetProperty("org.freedesktop.systemd1.Unit.Id")
 	if IdErr != nil {
 		return nil, IdErr
@@ -48,6 +54,33 @@ func (c *Client) GetUnit(unitName string) (*UnitResponse, error) {
 	}
 
 	return response, nil
+}
+
+func (c *Client) StartUnit(unitName string) error {
+	var jobPath dbus.ObjectPath
+	startErr := c.connection.Object(destination, systemdPath).Call(startUnitMethod, 0, unitName, mode).Store(&jobPath)
+	if startErr != nil {
+		return startErr
+	}
+	return nil
+}
+
+func (c *Client) RestartUnit(unitName string) error {
+	var jobPath dbus.ObjectPath
+	restartErr := c.connection.Object(destination, systemdPath).Call(restartUnitMethod, 0, unitName, mode).Store(&jobPath)
+	if restartErr != nil {
+		return restartErr
+	}
+	return nil
+}
+
+func (c *Client) StopUnit(unitName string) error {
+	var jobPath dbus.ObjectPath
+	stopErr := c.connection.Object(destination, systemdPath).Call(stopUnitMethod, 0, unitName, mode).Store(&jobPath)
+	if stopErr != nil {
+		return stopErr
+	}
+	return nil
 }
 
 func (c *Client) Close() error {
