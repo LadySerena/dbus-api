@@ -1,0 +1,10 @@
+/* Allows service account api-manager to manage the minecraft service
+ *
+ */
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.freedesktop.systemd1.manage-units" && subject.isInGroup("api-manager")) {
+        if (action.lookup("unit") == "minecraft.service") {
+            return polkit.Result.YES;
+        }
+    }
+});
