@@ -1,6 +1,8 @@
 package dbus
 
 import (
+	"time"
+
 	"github.com/godbus/dbus"
 )
 
@@ -13,7 +15,12 @@ const (
 	startUnitMethod                   = managerInterface + ".StartUnit"
 	restartUnitMethod                 = managerInterface + ".RestartUnit"
 	stopUnitMethod                    = managerInterface + ".StopUnit"
+	StartService      Operation       = "start"
+	RestartService    Operation       = "restart"
+	StopService       Operation       = "stop"
 )
+
+type Operation string
 
 type Client struct {
 	connection *dbus.Conn
@@ -25,7 +32,12 @@ type UnitResponse struct {
 	SubStatus   string `json:"sub-status"`
 }
 
+type ServiceChangeRequest struct {
+	Operation Operation `json:"operation"`
+}
+
 func (c *Client) GetUnit(unitName string) (*UnitResponse, error) {
+	time.Sleep(time.Millisecond * 500)
 	var path dbus.ObjectPath
 
 	getObjectErr := c.connection.Object(destination, systemdPath).Call(getUnitMethod, 0, unitName).Store(&path)
@@ -57,6 +69,7 @@ func (c *Client) GetUnit(unitName string) (*UnitResponse, error) {
 }
 
 func (c *Client) StartUnit(unitName string) error {
+	time.Sleep(time.Millisecond * 500)
 	var jobPath dbus.ObjectPath
 	startErr := c.connection.Object(destination, systemdPath).Call(startUnitMethod, 0, unitName, mode).Store(&jobPath)
 	if startErr != nil {
@@ -66,6 +79,8 @@ func (c *Client) StartUnit(unitName string) error {
 }
 
 func (c *Client) RestartUnit(unitName string) error {
+
+	time.Sleep(time.Millisecond * 500)
 	var jobPath dbus.ObjectPath
 	restartErr := c.connection.Object(destination, systemdPath).Call(restartUnitMethod, 0, unitName, mode).Store(&jobPath)
 	if restartErr != nil {
@@ -75,6 +90,8 @@ func (c *Client) RestartUnit(unitName string) error {
 }
 
 func (c *Client) StopUnit(unitName string) error {
+
+	time.Sleep(time.Millisecond * 500)
 	var jobPath dbus.ObjectPath
 	stopErr := c.connection.Object(destination, systemdPath).Call(stopUnitMethod, 0, unitName, mode).Store(&jobPath)
 	if stopErr != nil {
@@ -94,3 +111,5 @@ func NewClient() (*Client, error) {
 	}
 	return &Client{connection: conn}, nil
 }
+
+
