@@ -2,7 +2,10 @@ package main
 
 import (
 	"dbus-api/pkg/dbus"
+	"dbus-api/pkg/server"
 	"fmt"
+	"log"
+	"net/http"
 )
 
 func main() {
@@ -12,27 +15,8 @@ func main() {
 		return
 	}
 	defer client.Close()
-	unitDetails, getErr := client.GetUnit("docker.service")
-	if getErr != nil {
-		fmt.Printf("could not get unit %s due to: %s\n", "docker.service", getErr.Error())
-		return
-	}
-	fmt.Printf("%#v\n", unitDetails)
-
-	startUnitErr := client.StartUnit("docker.service")
-	if startUnitErr != nil {
-		fmt.Printf("%s\n", startUnitErr.Error())
-		return
-	}
-	stopUnitErr := client.StopUnit("docker.service")
-	if stopUnitErr != nil {
-		fmt.Printf("%s\n", stopUnitErr.Error())
-		return
-	}
-	restartUnitErr := client.RestartUnit("docker.service")
-	if restartUnitErr != nil {
-		fmt.Printf("%s\n", restartUnitErr.Error())
-		return
-	}
-	fmt.Printf("finished test\n")
+	config := server.NewConfig(client, "docker.service")
+	http.HandleFunc("/service", config.GetService)
+	http.HandleFunc("/meow/service", config.PostService)
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
