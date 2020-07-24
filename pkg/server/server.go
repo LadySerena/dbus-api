@@ -1,9 +1,9 @@
 package server
 
 import (
+	"dbus-api/pkg/common"
 	"dbus-api/pkg/dbus"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"sync"
@@ -33,13 +33,13 @@ func (c *Config) GetService(w http.ResponseWriter, r *http.Request) {
 	response, getUnitErr := c.client.GetUnit(c.unitName)
 	if getUnitErr != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = w.Write(generateErrorResponse(http.StatusInternalServerError, "could not get unit status", getUnitErr))
+		_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not get unit status", getUnitErr))
 		return
 	}
 
 	responseBytes, marshalErr := json.Marshal(response)
 	if marshalErr != nil {
-		_, _ = w.Write(generateErrorResponse(http.StatusInternalServerError, "could not marshal unit status", marshalErr))
+		_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not marshal unit status", marshalErr))
 		return
 	}
 	_, _ = w.Write(responseBytes)
@@ -51,7 +51,7 @@ func (c *Config) PostService(w http.ResponseWriter, r *http.Request) {
 	bodyBytes, readErr := ioutil.ReadAll(r.Body)
 	if readErr != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = w.Write(generateErrorResponse(http.StatusInternalServerError, "could not read request body", readErr))
+		_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not read request body", readErr))
 		return
 	}
 
@@ -59,7 +59,7 @@ func (c *Config) PostService(w http.ResponseWriter, r *http.Request) {
 
 	unmarshalErr := json.Unmarshal(bodyBytes, &serviceRequest)
 	if unmarshalErr != nil {
-		_, _ = w.Write(generateErrorResponse(http.StatusInternalServerError, "could not unmarshal request", unmarshalErr))
+		_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not unmarshal request", unmarshalErr))
 		return
 	}
 
@@ -67,26 +67,41 @@ func (c *Config) PostService(w http.ResponseWriter, r *http.Request) {
 	case dbus.StartService:
 		startErr := c.client.StartUnit(c.unitName)
 		if startErr != nil {
-			_, _ = w.Write(generateErrorResponse(http.StatusInternalServerError, "could not start unit: "+c.unitName, startErr))
-			return
-		}
-		fallthrough
-	default:
-		response, getUnitErr := c.client.GetUnit(c.unitName)
-		if getUnitErr != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write(generateErrorResponse(http.StatusInternalServerError, "could not get unit status", getUnitErr))
+			_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not start unit: "+c.unitName, startErr))
 			return
 		}
-
-		responseBytes, marshalErr := json.Marshal(response)
-		if marshalErr != nil {
-			_, _ = w.Write(generateErrorResponse(http.StatusInternalServerError, "could not marshal unit status", marshalErr))
+	case dbus.StopService:
+		stopErr := c.client.StopUnit(c.unitName)
+		if stopErr != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not stop unit: "+c.unitName, stopErr))
 			return
 		}
-		_, _ = w.Write(responseBytes)
+	case dbus.RestartService:
+		restartErr := c.client.RestartUnit(c.unitName)
+		if restartErr != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not restart unit: "+c.unitName, restartErr))
+		}
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write(common.GenerateProblemResponse(http.StatusBadRequest, "invalid operation, please use "+string(dbus.StartService)+", "+string(dbus.RestartService)+", or "+string(dbus.StopService)))
 		return
 	}
+	response, getUnitErr := c.client.GetUnit(c.unitName)
+	if getUnitErr != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not get unit status", getUnitErr))
+		return
+	}
+
+	responseBytes, marshalErr := json.Marshal(response)
+	if marshalErr != nil {
+		_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not marshal unit status", marshalErr))
+		return
+	}
+	_, _ = w.Write(responseBytes)
 }
 
 func NewConfig(client *dbus.Client, unitName string) Config {
@@ -95,8 +110,4 @@ func NewConfig(client *dbus.Client, unitName string) Config {
 		unitName: unitName,
 		mux:      sync.Mutex{},
 	}
-}
-
-func generateErrorResponse(code int32, text string, err error) []byte {
-	return []byte(fmt.Sprintf(`{"status": %d, "reason":"%s due to: %s"}`, code, text, err.Error()))
 }
