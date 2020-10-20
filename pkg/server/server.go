@@ -9,11 +9,6 @@ import (
 	"sync"
 )
 
-const (
-	jsonContent          = "application/json"
-	contentTypeHeaderKey = "Content-Type"
-)
-
 type APIError struct {
 	Status int32  `json:"status"`
 	Reason string `json:"reason"`
@@ -26,7 +21,7 @@ type Config struct {
 }
 
 func (c *Config) GetService(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add(contentTypeHeaderKey, jsonContent)
+	w.Header().Add(common.ContentTypeHeaderKey, common.JsonContent)
 	defer r.Body.Close()
 	c.mux.Lock()
 	defer c.mux.Unlock()
@@ -39,14 +34,15 @@ func (c *Config) GetService(w http.ResponseWriter, r *http.Request) {
 
 	responseBytes, marshalErr := json.Marshal(response)
 	if marshalErr != nil {
-		_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not marshal unit status", marshalErr))
+		_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not marshal unit status",
+			marshalErr))
 		return
 	}
 	_, _ = w.Write(responseBytes)
 }
 
 func (c *Config) PostService(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add(contentTypeHeaderKey, jsonContent)
+	w.Header().Add(common.ContentTypeHeaderKey, common.JsonContent)
 	defer r.Body.Close()
 	bodyBytes, readErr := ioutil.ReadAll(r.Body)
 	if readErr != nil {
@@ -59,7 +55,8 @@ func (c *Config) PostService(w http.ResponseWriter, r *http.Request) {
 
 	unmarshalErr := json.Unmarshal(bodyBytes, &serviceRequest)
 	if unmarshalErr != nil {
-		_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not unmarshal request", unmarshalErr))
+		_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not unmarshal request",
+			unmarshalErr))
 		return
 	}
 
@@ -68,25 +65,29 @@ func (c *Config) PostService(w http.ResponseWriter, r *http.Request) {
 		startErr := c.client.StartUnit(c.unitName)
 		if startErr != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not start unit: "+c.unitName, startErr))
+			_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not start unit: "+c.unitName,
+				startErr))
 			return
 		}
 	case dbus.StopService:
 		stopErr := c.client.StopUnit(c.unitName)
 		if stopErr != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not stop unit: "+c.unitName, stopErr))
+			_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not stop unit: "+c.unitName,
+				stopErr))
 			return
 		}
 	case dbus.RestartService:
 		restartErr := c.client.RestartUnit(c.unitName)
 		if restartErr != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not restart unit: "+c.unitName, restartErr))
+			_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not restart unit: "+c.unitName,
+				restartErr))
 		}
 	default:
 		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write(common.GenerateProblemResponse(http.StatusBadRequest, "invalid operation, please use "+string(dbus.StartService)+", "+string(dbus.RestartService)+", or "+string(dbus.StopService)))
+		_, _ = w.Write(common.GenerateProblemResponse(http.StatusBadRequest, "invalid operation, please use "+
+			string(dbus.StartService)+", "+string(dbus.RestartService)+", or "+string(dbus.StopService)))
 		return
 	}
 	response, getUnitErr := c.client.GetUnit(c.unitName)

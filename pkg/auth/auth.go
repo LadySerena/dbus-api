@@ -28,12 +28,14 @@ func (db *Database) BasicAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username, password, ok := r.BasicAuth()
 		if !ok {
+			w.Header().Add(common.ContentTypeHeaderKey, common.JsonContent)
 			common.GenerateProblemResponse(http.StatusUnauthorized, "malformed auth")
 			return
 		}
 		authErr := db.isAuthorized(username, password)
 		if authErr != nil {
 			log.Println("rejected user: " + username)
+			w.Header().Add(common.ContentTypeHeaderKey, common.JsonContent)
 			common.GenerateProblemResponse(http.StatusUnauthorized, "user is unauthorized")
 			return
 		}
