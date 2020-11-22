@@ -111,5 +111,3 @@ func NewClient() (*Client, error) {
 	}
 	return &Client{connection: conn}, nil
 }
-
-

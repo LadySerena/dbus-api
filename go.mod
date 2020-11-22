@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/godbus/dbus v4.1.0+incompatible
-	github.com/gorilla/mux v1.7.4
-	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
+	github.com/gorilla/mux v1.8.0
+	github.com/spf13/viper v1.7.1
+	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
 )

@@ -44,8 +44,8 @@ func (db *Database) BasicAuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-//NewDatabase creates a new authorization database that allows users to use the api. The file must be an httpd formatted
-//basic auth file in the form of <user>:<bcrypt password hash> with newlines separating each user.
+//  NewDatabase creates a new authorization database that allows users to use the api. The file must be an httpd formatted
+// basic auth file in the form of <user>:<bcrypt password hash> with newlines separating each user.
 func NewDatabase(pathToAuthFile string) (Database, error) {
 	file, openErr := os.Open(pathToAuthFile)
 	if openErr != nil {

@@ -2,9 +2,19 @@
  *
  */
 polkit.addRule(function(action, subject) {
-    if (action.id == "org.freedesktop.systemd1.manage-units" && subject.isInGroup("api-manager")) {
-        if (action.lookup("unit") == "minecraft.service") {
-            return polkit.Result.YES;
+    polkit.log("action=" + action);
+    polkit.log("subject=" + subject);
+    polkit.log("action.id=" + action.id);
+    polkit.log("ingroup=" + subject.isInGroup("api-manager"));
+    polkit.log("unit=" +  action.lookup("unit"));
+    if (action.id == "org.freedesktop.systemd1.manage-units" && subject.isInGroup("api-manager") && action.lookup("unit") == "docker.service") {
+        if (subject.isInGroup("api-manager") && action.lookup("unit") == "docker.service") {
+            var verb = action.lookup("verb");
+            polkit.log("verb="+ verb)
+            if (verb == "start" || verb == "stop" || verb == "restart") {
+                polkit.log("works");
+                return polkit.Result.YES;
+            }
         }
     }
 });
