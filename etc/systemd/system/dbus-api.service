@@ -1,0 +1,12 @@
+[Unit]
+Description=dbus api
+Documentation=https://github.com/LadySerena/dbus-api/blob/main/README.md
+[Service]
+Type=simple
+ExecStart=/usr/sbin/dbus-api
+EnvironmentFile=/etc/dbus-api/environment
+Restart=on-failure
+User=dbus-api
+Group=dbus-api
+[Install]
+WantedBy=multi-user.target
