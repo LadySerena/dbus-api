@@ -4,6 +4,8 @@ steps:
       - go
       - build
       - './cmd/dbus-api'
+    env:
+      - "CGO_ENABLED=0" #static compilation to avoid glib issues
   - name: openjdk:11-slim
     entrypoint: bash
     args:
@@ -17,5 +19,5 @@ steps:
       - "build/distributions/${_PACKAGE_NAME}_${TAG_NAME}_amd64.deb"
       - "gs://$_BUCKET/"
 substitutions:
-  _BUCKET: tel-us-deb-repo
+  _BUCKET: debian-v1.platform.serenacodes.com
   _PACKAGE_NAME: dbus-api
