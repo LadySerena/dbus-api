@@ -56,6 +56,40 @@ task buildPackage(type: Deb) {
         fileMode 0644
     }
 
+}
 
+task buildPackagePreCompiled(type: Deb) {
+    packageName 'dbus-api'
+    version package_version
+    release package_release
+    arch "amd64"
+    os LINUX
+    preInstall file('./scripts/preInstall.sh')
+    postInstall file('./scripts/postInstall.sh')
+    requires('software-properties-common')//for polkit\
+    recommends('apache2-utils') //for httpasswd
+
+    from('resources/etc/polkit-1/localauthority/50-local.d'){
+        into '/etc/polkit-1/localauthority/50-local.d/'
+        user = 'root'
+        permissionGroup = 'root'
+        fileMode 0644
+    }
+
+    from(project.projectDir){
+        into '/usr/sbin'
+        include 'dbus-api'
+        user = 'root'
+        permissionGroup = 'root'
+        fileMode = 0751
+    }
+
+    from('etc/systemd/system'){
+        into '/etc/systemd/system'
+        include 'dbus-api.service'
+        user 'root'
+        permissionGroup 'root'
+        fileMode 0644
+    }
 
 }
