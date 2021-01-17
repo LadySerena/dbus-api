@@ -1,0 +1,21 @@
+steps:
+  - name: golang:1.15
+    args:
+      - go
+      - build
+      - './cmd/dbus-api'
+  - name: openjdk:11-slim
+    entrypoint: bash
+    args:
+      - "./gradlew"
+      - "buildPackagePreCompiled"
+      - "-Ptag=$TAG_NAME"
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gsutil
+    args:
+      - "cp"
+      - "build/distributions/${_PACKAGE_NAME}_${TAG_NAME}_amd64.deb"
+      - "gs://$_BUCKET/"
+substitutions:
+  _BUCKET: tel-us-deb-repo
+  _PACKAGE_NAME: dbus-api
