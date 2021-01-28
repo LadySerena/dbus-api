@@ -6,6 +6,8 @@ steps:
       - './cmd/dbus-api'
     env:
       - "CGO_ENABLED=0" #static compilation to avoid glib issues
+      - "GOOS=linux"
+      - "GOARCH=amd64"
   - name: openjdk:11-slim
     entrypoint: bash
     args:
