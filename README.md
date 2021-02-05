@@ -24,3 +24,13 @@ The api uses [viper](https://github.com/spf13/viper) and is configured via envir
     - required if `DBUS_API_TLS_ENABLED=true` path to the public key of the certificate
 - DBUS_API_TLS_KEY_PATH
     - required if `DBUS_API_TLS_ENABLED=true` path to the private key of the certificate
+
+gcp metadata
+
+dbus-secret-name - name of secret containing the htpasswd formated auth file in secrets manager
+
+service-name - name of the systemd service to manage via rest api
+
+tls-secret-name - name of secret containing the tls private key in secrets manager
+
+tls-cert - contains the corresponding public key to the tls private key
