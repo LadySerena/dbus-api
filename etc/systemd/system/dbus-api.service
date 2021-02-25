@@ -4,7 +4,6 @@ Documentation=https://github.com/LadySerena/dbus-api/blob/main/README.md
 [Service]
 Type=simple
 ExecStart=/usr/sbin/dbus-api
-ExecStartPre=/dbus-api/set-configs.sh
 EnvironmentFile=/etc/dbus-api/environment
 Restart=on-failure
 User=dbus-api
