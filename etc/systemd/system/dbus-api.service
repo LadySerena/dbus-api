@@ -1,6 +1,7 @@
 [Unit]
 Description=dbus api
 Documentation=https://github.com/LadySerena/dbus-api/blob/main/README.md
+After=google-startup-scripts.service
 [Service]
 Type=simple
 ExecStart=/usr/sbin/dbus-api
