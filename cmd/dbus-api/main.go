@@ -44,13 +44,13 @@ func main() {
 	tlsEnabled := viper.GetBool(tlsEnabledKey)
 
 	tlsCertPath := viper.GetString(tlsCertPathKey)
-	if tlsCertPath == "" && !tlsEnabled {
+	if tlsCertPath == "" && tlsEnabled {
 		log.Fatalf("you must provide the path to the tls cert (public key) via setting the environment variable %s_%s", strings.ToUpper(prefix), strings.ToUpper(tlsCertPathKey))
 		return
 	}
 
 	tlsKeyPath := viper.GetString(tlsPrivateKeyPathKey)
-	if tlsKeyPath == "" && !tlsEnabled {
+	if tlsKeyPath == "" && tlsEnabled {
 		log.Fatalf("you must provide the path to the tls private key via setting the environment variable %s_%s", strings.ToUpper(prefix), strings.ToUpper(tlsPrivateKeyPathKey))
 		return
 	}
