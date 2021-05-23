@@ -47,11 +47,11 @@ func NewApp() (*App, error) {
 
 	serviceName := configViper.GetString(serviceKey)
 	if serviceName == "" {
-		return nil, newConfigError(serviceName)
+		return nil, newConfigError(serviceKey)
 	}
 	authFilePath := configViper.GetString(authFileKey)
 	if authFilePath == "" {
-		return nil, newConfigError(authFilePath)
+		return nil, newConfigError(authFileKey)
 	}
 
 	listener := configViper.GetString(listenAddressKey)
