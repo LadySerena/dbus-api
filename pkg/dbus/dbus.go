@@ -22,7 +22,15 @@ const (
 
 type Operation string
 
-type Client struct {
+type Client interface {
+	GetUnit(unitName string) (*UnitResponse, error)
+	StartUnit(unitName string) error
+	RestartUnit(unitName string) error
+	StopUnit(unitName string) error
+	Close() error
+}
+
+type RealClient struct {
 	connection *dbus.Conn
 }
 
@@ -36,7 +44,7 @@ type ServiceChangeRequest struct {
 	Operation Operation `json:"operation"`
 }
 
-func (c *Client) GetUnit(unitName string) (*UnitResponse, error) {
+func (c *RealClient) GetUnit(unitName string) (*UnitResponse, error) {
 	time.Sleep(time.Millisecond * 500)
 	var path dbus.ObjectPath
 
@@ -68,7 +76,7 @@ func (c *Client) GetUnit(unitName string) (*UnitResponse, error) {
 	return response, nil
 }
 
-func (c *Client) StartUnit(unitName string) error {
+func (c *RealClient) StartUnit(unitName string) error {
 	time.Sleep(time.Millisecond * 500)
 	var jobPath dbus.ObjectPath
 	startErr := c.connection.Object(destination, systemdPath).Call(startUnitMethod, 0, unitName, mode).Store(&jobPath)
@@ -78,7 +86,7 @@ func (c *Client) StartUnit(unitName string) error {
 	return nil
 }
 
-func (c *Client) RestartUnit(unitName string) error {
+func (c *RealClient) RestartUnit(unitName string) error {
 
 	time.Sleep(time.Millisecond * 500)
 	var jobPath dbus.ObjectPath
@@ -89,7 +97,7 @@ func (c *Client) RestartUnit(unitName string) error {
 	return nil
 }
 
-func (c *Client) StopUnit(unitName string) error {
+func (c *RealClient) StopUnit(unitName string) error {
 
 	time.Sleep(time.Millisecond * 500)
 	var jobPath dbus.ObjectPath
@@ -100,14 +108,14 @@ func (c *Client) StopUnit(unitName string) error {
 	return nil
 }
 
-func (c *Client) Close() error {
+func (c *RealClient) Close() error {
 	return c.connection.Close()
 }
 
-func NewClient() (*Client, error) {
+func NewClient() (Client, error) {
 	conn, connectionErr := dbus.SystemBus()
 	if connectionErr != nil {
 		return nil, connectionErr
 	}
-	return &Client{connection: conn}, nil
+	return &RealClient{connection: conn}, nil
 }

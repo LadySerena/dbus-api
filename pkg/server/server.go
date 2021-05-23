@@ -15,7 +15,7 @@ type APIError struct {
 }
 
 type Config struct {
-	client   *dbus.Client
+	Client   dbus.Client
 	unitName string
 	mux      sync.Mutex
 }
@@ -25,7 +25,8 @@ func (c *Config) GetService(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	c.mux.Lock()
 	defer c.mux.Unlock()
-	response, getUnitErr := c.client.GetUnit(c.unitName)
+
+	response, getUnitErr := c.Client.GetUnit(c.unitName)
 	if getUnitErr != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not get unit status", getUnitErr))
@@ -62,7 +63,7 @@ func (c *Config) PostService(w http.ResponseWriter, r *http.Request) {
 
 	switch serviceRequest.Operation {
 	case dbus.StartService:
-		startErr := c.client.StartUnit(c.unitName)
+		startErr := c.Client.StartUnit(c.unitName)
 		if startErr != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not start unit: "+c.unitName,
@@ -70,7 +71,7 @@ func (c *Config) PostService(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case dbus.StopService:
-		stopErr := c.client.StopUnit(c.unitName)
+		stopErr := c.Client.StopUnit(c.unitName)
 		if stopErr != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not stop unit: "+c.unitName,
@@ -78,7 +79,7 @@ func (c *Config) PostService(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	case dbus.RestartService:
-		restartErr := c.client.RestartUnit(c.unitName)
+		restartErr := c.Client.RestartUnit(c.unitName)
 		if restartErr != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not restart unit: "+c.unitName,
@@ -90,7 +91,7 @@ func (c *Config) PostService(w http.ResponseWriter, r *http.Request) {
 			string(dbus.StartService)+", "+string(dbus.RestartService)+", or "+string(dbus.StopService)))
 		return
 	}
-	response, getUnitErr := c.client.GetUnit(c.unitName)
+	response, getUnitErr := c.Client.GetUnit(c.unitName)
 	if getUnitErr != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write(common.GenerateErrorResponse(http.StatusInternalServerError, "could not get unit status", getUnitErr))
@@ -105,9 +106,9 @@ func (c *Config) PostService(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(responseBytes)
 }
 
-func NewConfig(client *dbus.Client, unitName string) Config {
+func NewConfig(client dbus.Client, unitName string) Config {
 	return Config{
-		client:   client,
+		Client:   client,
 		unitName: unitName,
 		mux:      sync.Mutex{},
 	}

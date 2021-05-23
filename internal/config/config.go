@@ -1,9 +1,14 @@
 package config
 
 import (
+	"dbus-api/pkg/auth"
+	"dbus-api/pkg/dbus"
+	"dbus-api/pkg/server"
 	"fmt"
+	"net/http"
 	"strings"
 
+	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 )
 
@@ -78,6 +83,30 @@ func NewApp() (*App, error) {
 		},
 		ListenerAddress: listener,
 	}, nil
+}
+
+func (a App) Run() error {
+	client, clientCreateErr := dbus.NewClient()
+	if clientCreateErr != nil {
+		return clientCreateErr
+	}
+	defer client.Close()
+	db, dbErr := auth.NewDatabase(a.AuthFilePath)
+	if dbErr != nil {
+		return dbErr
+	}
+	appServer := server.NewConfig(client, a.ServiceName)
+	router := mux.NewRouter()
+
+	router.Use(db.BasicAuthMiddleware)
+	router.HandleFunc("/service", appServer.PostService).Methods(http.MethodPost)
+	router.HandleFunc("/service", appServer.GetService).Methods(http.MethodGet)
+
+	if a.TLSConfig.TLSEnabled {
+		return http.ListenAndServeTLS(a.ListenerAddress, a.TLSConfig.CertPath, a.TLSConfig.KeyPath, router)
+	} else {
+		return http.ListenAndServe(a.ListenerAddress, router)
+	}
 }
 
 type configError struct {
