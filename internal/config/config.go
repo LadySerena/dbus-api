@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -43,8 +42,58 @@ func NewApp() (*App, error) {
 
 	serviceName := configViper.GetString(serviceKey)
 	if serviceName == "" {
-		return nil, errors.New(fmt.Sprintf("you must provide a service name via setting the environment variable: %s_%s", strings.ToUpper(prefix), strings.ToUpper(serviceKey)))
+		return nil, newConfigError(serviceName)
+	}
+	authFilePath := configViper.GetString(authFileKey)
+	if authFilePath == "" {
+		return nil, newConfigError(authFilePath)
 	}
 
-	return nil, errors.New("not implemented yet")
+	listener := configViper.GetString(listenAddressKey)
+
+	if listener == "" {
+		listener = listenerDefault
+	}
+	tlsEnabled := configViper.GetBool(tlsEnabledKey)
+
+	// only error if tls is enabled and the path is blank
+	tlsCertPath := configViper.GetString(tlsCertPathKey)
+	if tlsEnabled && tlsCertPath == "" {
+		return nil, newTLSConfigError(tlsCertPathKey)
+	}
+
+	tlsPrivateKeyPath := configViper.GetString(tlsPrivateKeyPathKey)
+	// only error if tls is enabled and the path is blank
+	if tlsEnabled && tlsPrivateKeyPath == "" {
+		return nil, newTLSConfigError(tlsPrivateKeyPathKey)
+	}
+
+	return &App{
+		ServiceName:  serviceName,
+		AuthFilePath: authFilePath,
+		TLSConfig: TLS{
+			TLSEnabled: tlsEnabled,
+			CertPath:   tlsCertPath,
+			KeyPath:    tlsPrivateKeyPath,
+		},
+		ListenerAddress: listener,
+	}, nil
+}
+
+type configError struct {
+	message string
+}
+
+func newConfigError(key string) *configError {
+	config := fmt.Sprintf("%s_%s", strings.ToUpper(prefix), strings.ToUpper(key))
+	return &configError{message: fmt.Sprintf("missing config: %s, configure this option via setting the environment variable: %s", config, config)}
+}
+
+func newTLSConfigError(key string) *configError {
+	config := fmt.Sprintf("%s_%s", strings.ToUpper(prefix), strings.ToUpper(key))
+	return &configError{message: fmt.Sprintf("missing tls config: %s, configure this option via setting the environment variable: %s", config, config)}
+}
+
+func (e configError) Error() string {
+	return e.message
 }
