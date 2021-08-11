@@ -38,36 +38,31 @@ type TLS struct {
 }
 
 func NewApp() (*App, error) {
-	// initialize new viper and set defaults
-	configViper := viper.New()
-	configViper.SetEnvPrefix(prefix)
-	configViper.SetDefault(listenAddressKey, listenerDefault)
-	configViper.SetDefault(tlsEnabledKey, tlsEnabledDefault)
-	configViper.AutomaticEnv()
+	viper.SetEnvPrefix(prefix)
+	viper.SetDefault(listenAddressKey, listenerDefault)
+	viper.SetDefault(tlsEnabledKey, tlsEnabledDefault)
+	viper.AutomaticEnv()
 
-	serviceName := configViper.GetString(serviceKey)
+	serviceName := viper.GetString(serviceKey)
 	if serviceName == "" {
 		return nil, newConfigError(serviceKey)
 	}
-	authFilePath := configViper.GetString(authFileKey)
+	authFilePath := viper.GetString(authFileKey)
 	if authFilePath == "" {
 		return nil, newConfigError(authFileKey)
 	}
 
-	listener := configViper.GetString(listenAddressKey)
+	listener := viper.GetString(listenAddressKey)
 
-	if listener == "" {
-		listener = listenerDefault
-	}
-	tlsEnabled := configViper.GetBool(tlsEnabledKey)
+	tlsEnabled := viper.GetBool(tlsEnabledKey)
 
 	// only error if tls is enabled and the path is blank
-	tlsCertPath := configViper.GetString(tlsCertPathKey)
+	tlsCertPath := viper.GetString(tlsCertPathKey)
 	if tlsEnabled && tlsCertPath == "" {
 		return nil, newTLSConfigError(tlsCertPathKey)
 	}
 
-	tlsPrivateKeyPath := configViper.GetString(tlsPrivateKeyPathKey)
+	tlsPrivateKeyPath := viper.GetString(tlsPrivateKeyPathKey)
 	// only error if tls is enabled and the path is blank
 	if tlsEnabled && tlsPrivateKeyPath == "" {
 		return nil, newTLSConfigError(tlsPrivateKeyPathKey)
@@ -113,14 +108,14 @@ type configError struct {
 	message string
 }
 
-func newConfigError(key string) *configError {
+func newConfigError(key string) configError {
 	config := fmt.Sprintf("%s_%s", strings.ToUpper(prefix), strings.ToUpper(key))
-	return &configError{message: fmt.Sprintf("missing config: %s, configure this option via setting the environment variable: %s", config, config)}
+	return configError{message: fmt.Sprintf("missing config: %s, configure this option via setting the environment variable: %s", config, config)}
 }
 
-func newTLSConfigError(key string) *configError {
+func newTLSConfigError(key string) configError {
 	config := fmt.Sprintf("%s_%s", strings.ToUpper(prefix), strings.ToUpper(key))
-	return &configError{message: fmt.Sprintf("missing tls config: %s, configure this option via setting the environment variable: %s", config, config)}
+	return configError{message: fmt.Sprintf("missing tls config: %s, configure this option via setting the environment variable: %s", config, config)}
 }
 
 func (e configError) Error() string {
