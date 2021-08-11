@@ -2,12 +2,13 @@ package auth
 
 import (
 	"bufio"
-	"dbus-api/pkg/common"
 	"errors"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/LadySerena/dbus-api/pkg/common"
 
 	"golang.org/x/crypto/bcrypt"
 )

@@ -1,12 +1,13 @@
 package config
 
 import (
-	"dbus-api/pkg/auth"
-	"dbus-api/pkg/dbus"
-	"dbus-api/pkg/server"
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/LadySerena/dbus-api/pkg/auth"
+	"github.com/LadySerena/dbus-api/pkg/dbus"
+	"github.com/LadySerena/dbus-api/pkg/server"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"dbus-api/internal/config"
 	"log"
+
+	"github.com/LadySerena/dbus-api/internal/config"
 )
 
 func main() {

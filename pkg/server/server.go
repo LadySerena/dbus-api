@@ -1,12 +1,13 @@
 package server
 
 import (
-	"dbus-api/pkg/common"
-	"dbus-api/pkg/dbus"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"sync"
+
+	"github.com/LadySerena/dbus-api/pkg/common"
+	"github.com/LadySerena/dbus-api/pkg/dbus"
 )
 
 type APIError struct {

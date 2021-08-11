@@ -1,4 +1,4 @@
-FROM golang:1.14
+FROM golang:1.16
 
 RUN mkdir build
 
@@ -11,6 +11,6 @@ RUN go mod download -json
 
 COPY cmd ./cmd
 COPY pkg ./pkg
-
+COPY internal ./internal
 RUN go build -o ./build ./cmd/dbus-api
 RUN go test ./...
