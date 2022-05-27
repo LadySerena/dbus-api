@@ -1,4 +1,4 @@
-FROM golang:1.14
+FROM golang:1.18 as build
 
 RUN mkdir build
 
@@ -12,5 +12,10 @@ RUN go mod download -json
 COPY cmd ./cmd
 COPY pkg ./pkg
 
-RUN go build -o ./build ./cmd/dbus-api
+RUN CGO_ENABLED=0 go build -o /api ./cmd/dbus-api
 RUN go test ./...
+
+FROM scratch
+
+COPY --from=build /api /api
+ENTRYPOINT ["/api"]
